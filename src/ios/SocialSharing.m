@@ -569,6 +569,25 @@ static NSString *const kShareOptionIPadCoordinates = @"iPadCoordinates";
 }
 
 - (void)shareViaInstagram:(CDVInvokedUrlCommand*)command {
+  NSArray *filenames = [command.arguments objectAtIndex:2];
+  UIImage* backgroundImage = [self getImage:filenames[0]];
+
+  NSURL *urlScheme = [NSURL URLWithString:@"instagram-stories://share?source_application=com.apprazi.application"];
+
+  if ([[UIApplication sharedApplication] canOpenURL:urlScheme]) {
+    NSArray *pasteboardItems = @[@{@"com.instagram.sharedSticker.backgroundImage" : backgroundImage}];
+    NSDictionary *pasteboardOptions = @{UIPasteboardOptionExpirationDate : [[NSDate date] dateByAddingTimeInterval:60 * 5]};
+    [[UIPasteboard generalPasteboard] setItems:pasteboardItems options:pasteboardOptions];
+    [[UIApplication sharedApplication] openURL:urlScheme options:@{} completionHandler:nil];
+  } else {
+    CDVPluginResult * pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"instagram not available"];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+  }
+    
+    _command = command;
+}
+
+- (void)shareViaInstagramOld:(CDVInvokedUrlCommand*)command {
 
   // on iOS9 canShareVia('instagram'..) will only work if instagram:// is whitelisted.
   // If it's not, this method will ask permission to the user on iOS9 for opening the app,
